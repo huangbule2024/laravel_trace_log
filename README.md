@@ -123,8 +123,8 @@ class AppServiceProvider extends ServiceProvider
 
 ### 安装        "owen-it/laravel-auditing": "^13.5",
 ```php 
-		//额外增加字段 request_id
-         'resolvers' => [
+//额外增加字段 request_id
+'resolvers' => [
         'ip_address' => OwenIt\Auditing\Resolvers\IpAddressResolver::class,
         'user_agent' => OwenIt\Auditing\Resolvers\UserAgentResolver::class,
         'url'        => OwenIt\Auditing\Resolvers\UrlResolver::class,
