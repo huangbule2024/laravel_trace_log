@@ -88,80 +88,32 @@ class AppServiceProvider extends ServiceProvider
 
         //捕获自定义异常输出格式
         $handle = app(\Dingo\Api\Exception\Handler::class);
-        $handle->register(function (ApiException $exception) {
-            return response()::make(formats($exception->getMessage(), [], $exception->getCode()));
-        });
-
-        //捕获500错误
-        $handle->register(function (\ErrorException $exception) use ($request) {
-            Log::channel('error_log')->error($exception);
-            ding()->text( "任务id： " . app('request_id') . "   内容：" . $exception->getMessage() . " " . $exception->getFile() . " " . $exception->getLine() . '行');
-            return response()::make(formats($exception->getMessage(), [], 422));
-        });
-
-        $handle->register(function (\Error $exception) use ($request) {
-            Log::channel('error_log')->error($exception);
-            ding()->text( "任务id： " . app('request_id') . "   内容：" . $exception->getMessage() . " " . $exception->getFile() . " " . $exception->getLine() . '行');
-            return response()::make(formats($exception->getMessage(), [], 422));
-        });
-
-        $handle->register(function (ApiException $exception) use ($request) {
-            logger($exception);
-            return response()::make(formats($exception->getMessage(), [], 500));
-        });
-
-        //sql error
-        $handle->register(function (QueryException $exception) {
-            Log::channel('error_log')->error($exception);
-            ding()->text( "任务id： " . app('request_id') . "   内容：" . $exception->getMessage() . " " . $exception->getFile() . " " . $exception->getLine() . '行');
-            return response()::make(formats($exception->getMessage(), [], $exception->getCode()));
-        });
-
-        //拓展builder
-        EloquentBuilder::macro('whereLike', function ($column, $val) {
-            return $this->where($column, 'like', '%'.$val.'%');
-        });
-
-        //重写findOrFail
-        EloquentBuilder::macro('findOrThrow', function ($id, $message = '', $columns = ['*']) {
-            $flag = true;
-            //支持逗号拼接传过来 exp: ["1,2"]
-            if (is_array($id)) {
-                $id = explode(',', array_pop($id));
-            } else {
-                if (! is_numeric($id)) {
-                    $raw_id = $id;
-                    $id = get_id($id);
-                    if ($id == 'id错误') {
-                        $flag = false;
-                        $id = $raw_id;
+        $handle->register(function (\Exception $exception) {
+            switch ($exception) {
+                case $exception instanceof ApiException :
+                {
+                    if (config('log-requests-and-responses.api_exception_start')) {
+                        logger($exception);
+                    }
+                    $data = $exception->getData();
+                    return response()::make(formats($exception->getMessage(), $data, $exception->getCode()));
+                }
+                case $exception instanceof \ErrorException :
+                case $exception instanceof \Error :
+                case $exception instanceof QueryException :
+                {
+                    Log::channel('error_log')->error($exception);
+                    ding()->text( "任务id： " . app('request_id') . "   内容：" . $exception->getMessage() . " " . $exception->getFile() . " " . $exception->getLine() . '行');
+                    return response()::make(formats($exception->getMessage(), [], 422));
+                }
+                case $exception instanceof \Mosquitto\Exception :
+                {
+                    Log::channel('error_log')->error($exception);
+                    if ($exception->getMessage() == 'The client is not currently connected.') {
+                        return response()::make(formats('客户端当前连接mqtt失败，请联系管理员', [], 500));
                     }
                 }
             }
-            if ($flag == true) {
-                $result = $this->find($id, $columns);
-                $id = $id instanceof Arrayable ? $id->toArray() : $id;
-                if (is_array($id)) {
-                    if (count($result) === count(array_unique($id))) {
-                        return $result;
-                    }
-                } elseif (! is_null($result)) {
-                    return $result;
-                }
-            }
-            $message = $message ?: '表数据不存在 '.implode(', ', Arr::wrap($id));
-            throw_api_exception($message);
-        });
-
-        Validator::extend('allow_dash_new', function ($attribute, $value, $parameters, $validator) {
-            return is_string($value) && preg_match('/^[.0-9a-zA-Z_-]+$/u', $value);
-        });
-
-        Validator::extend('all_chinese', function ($attribute, $value, $parameters, $validator) {
-            if (preg_match('/^[\x{4e00}-\x{9fa5}]+$/u', $value)>0) {
-                return true;
-            }
-            return false;
         });
     }
 }
