@@ -22,9 +22,9 @@ class FormatResponse extends Middleware
         if (strpos($content_type, 'text/html') !== false && !Str::startsWith($content, '<!DOCTYPE')) {
             $is_json = is_json($content);
             if (is_null($content)) {
-                $response->setContent(formats('成功'));
+                $response->setContent($this->formats('成功'));
             } elseif (! $is_json) {
-                $response->setContent(formats('成功', $content));
+                $response->setContent($this->formats('成功', $content));
             }
         }
         if (strpos($content_type, 'application/json') !== false) {
@@ -34,9 +34,21 @@ class FormatResponse extends Middleware
                     $arr = array_merge($arr, $arr['meta']['pagination']);
                     unset($arr['meta']['pagination']);
                 }
-                $response->setContent(formats('成功', $arr));
+                $response->setContent($this->formats('成功', $arr));
             }
         }
         return $response;
+    }
+
+
+    function formats($message, $data = [], $status_code = 200)
+    {
+        return [
+            'request_id' => app('request_id'),
+            'status_code' => $status_code,
+            'status' => $status_code == 200 ? 'success' : 'error',
+            'message' => $message,
+            'data' => $data ? $data : new stdClass()/* new \ArrayObject()*/,
+        ];
     }
 }
