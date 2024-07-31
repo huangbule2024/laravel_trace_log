@@ -7,7 +7,7 @@ use Closure;
 use Illuminate\Support\Facades\Log;
 
 /**
- * 日志追踪链条中间件
+ * 日志追踪链条中间件，定义FormatResponse::class之前
  * @author hbl
  */
 class LogRequestsAndResponses
