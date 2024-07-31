@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Jobs\LogResponseRequest;
 use Closure;
 use Illuminate\Support\Facades\Log;
+use Laravel\SerializableClosure\SerializableClosure;
 
 /**
  * 日志追踪链条中间件
@@ -36,7 +37,7 @@ class LogRequestsAndResponses
             }
         }
         $response = $next($request);
-        $this->logger($request, $response);
+        $this->log($request, $response);
         return $response;
     }
 
@@ -47,7 +48,7 @@ class LogRequestsAndResponses
      * @param \Illuminate\Http\Response $response
      * @return void
      */
-    public function logger($request, $response): void
+    public function log($request, $response): void
     {
         if (config('log-requests-and-responses.response_start')) {
             $message = $response->getContent();
@@ -60,8 +61,8 @@ class LogRequestsAndResponses
     private function pushLog($request, $message, $chanel, $should_queue): void
     {
         $context = $this->getRequestData($request);
-        $job = new LogResponseRequest($message, $context, $chanel);
         if ($should_queue) {
+            $job = new LogResponseRequest($message, json_encode($context), $chanel);
             dispatch($job);
         } else {
             Log::channel($chanel)->debug($message, $context);
