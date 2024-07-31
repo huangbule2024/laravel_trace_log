@@ -30,7 +30,9 @@ class LogRequestsAndResponses
                 $this->pushLog($request, 'request => ', $chanel, $should_queue);
             }
         }
-        return $next($request);
+        $response = $next($request);
+        $this->logger($request, $response);
+        return $response;
     }
 
     /**
@@ -40,12 +42,12 @@ class LogRequestsAndResponses
      * @param \Illuminate\Http\Response $response
      * @return void
      */
-    public function terminate($request, $response): void
+    public function logger($request, $response): void
     {
         if (config('log-requests-and-responses.response_start')) {
             $message = $response->getContent();
             $chanel = config('log-requests-and-responses.response_channel');
-            $should_queue = config('log-requests-and-responses.request_should_queue');
+            $should_queue = config('log-requests-and-responses.response_should_queue');
             $this->pushLog($request, $message, $chanel, $should_queue);
         }
     }
