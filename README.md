@@ -252,3 +252,22 @@ directory=/var/www/project
 stdout_logfile=/var/www/project/storage/logs/logging_request_and_response.log
 stderr_logfile=/var/log/supervisor/logging_request_and_response.err.log
 ```
+
+### 中间件配置
+```
+    /**
+     * 全局中间件，
+     * 每一个 HTTP 请求时都被执行.
+     * @var array
+     */
+    protected $middleware = [
+        LogRequestsAndResponses::class, //要在FormatResponse::class 之前
+        FormatResponse::class, //格式化输出内容，包含链条id
+        \App\Http\Middleware\TrustProxies::class,
+        \Fruitcake\Cors\HandleCors::class,
+        \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
+        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
+        \App\Http\Middleware\TrimStrings::class,
+        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+    ];
+```
