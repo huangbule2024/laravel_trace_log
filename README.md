@@ -147,6 +147,22 @@ tail -100f sql.log | grep -C 10 "3245dc5d-5f21-43ca-be17-2b53ffe291e0"
 zgrep --color=auto  -i -C 10 "3245dc5d-5f21-43ca-be17-2b53ffe291e0" api_response.log.1.gz  //输出日志非常大必须压缩
 ```
 
+### 日志压缩
+#### 由于laravel 不支持按照大小分，所以引入logrotate.d系统自带压缩
+```
+touch /etc/logrotate.d/laravel-api-response
+
+/var/www/project/storage/logs/api_response.log {
+        size 1000M 
+        missingok
+        rotate 7
+        compress
+        create 0644  www-data www-data
+        su root www-data
+}
+
+```
+
 ### 钉钉机器人报警
 
 ```php
