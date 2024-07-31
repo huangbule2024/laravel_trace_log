@@ -1,5 +1,14 @@
 # laravel_trace_log
-日志追踪
+日志追踪，最终希望实现
+
+1. 数据变更记录日志
+2. sql日志
+3. 请求日志
+4. 响应输出日志
+5. 支持告警
+6. 错误日志
+
+
 ```php
 <?php
 
@@ -166,7 +175,7 @@ touch /etc/logrotate.d/laravel-api-response
 ### 钉钉机器人报警
 
 ```php
-        "wangju/ding-notice": "^1.0",
+"wangju/ding-notice": "^1.0",
 ```
 ```php
 <?php
