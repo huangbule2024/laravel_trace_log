@@ -144,6 +144,7 @@ tail -100f laravel.log | grep -C 10 "3245dc5d-5f21-43ca-be17-2b53ffe291e0"
 
 tail -100f sql.log | grep -C 10 "3245dc5d-5f21-43ca-be17-2b53ffe291e0"
 
+zgrep --color=auto  -i -C 10 "3245dc5d-5f21-43ca-be17-2b53ffe291e0" api_response.log.1.gz  //输出日志非常大必须压缩
 ```
 
 ### 钉钉机器人报警
@@ -208,3 +209,21 @@ class Handler extends ExceptionHandler
 
 ### 日志审核走异步
 [参考](https://learnku.com/articles/85688 "参考下篇文章")
+
+
+### supervisor 配置
+```
+[program:logging_request_and_response]
+command=php artisan queue:work --queue=logging_request_and_response --daemon --tries=3
+process_name=%(program_name)s
+numprocs=1
+startsecs=0
+startretries=10
+autostart=true
+autorestart=true
+user=www-data
+nodaemon=false
+directory=/var/www/project
+stdout_logfile=/var/www/project/storage/logs/logging_request_and_response.log
+stderr_logfile=/var/log/supervisor/logging_request_and_response.err.log
+```
