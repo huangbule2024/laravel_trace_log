@@ -7,7 +7,7 @@ use Closure;
 use Illuminate\Support\Facades\Log;
 
 /**
- * 日志追踪链条中间件，定义FormatResponse::class之前
+ * 日志追踪链条中间件
  * @author hbl
  */
 class LogRequestsAndResponses
@@ -27,7 +27,12 @@ class LogRequestsAndResponses
             if (!in_array($path, $arr_ignore)) {
                 $chanel = config('log-requests-and-responses.request_channel');
                 $should_queue = config('log-requests-and-responses.request_should_queue');
-                $this->pushLog($request, 'request => ', $chanel, $should_queue);
+                $message = '';
+                if ($should_queue) {
+                    $message = "[" . app('request_id') . "] ";
+                }
+                $message .= "request => ";
+                $this->pushLog($request, $message, $chanel, $should_queue);
             }
         }
         $response = $next($request);
